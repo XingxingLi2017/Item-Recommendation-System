@@ -1,11 +1,14 @@
 package rpc;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 public class RpcHelper {
@@ -16,7 +19,7 @@ public class RpcHelper {
 			response.addHeader("Access-Control-Allow-Origin", "*");
 			out.println(obj);
 			out.flush();
-			
+
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -39,5 +42,24 @@ public class RpcHelper {
 		finally {
 			out.close();
 		}
+	}
+
+	public static JSONObject readJsonObject(HttpServletRequest request)
+	{
+		StringBuilder sb = new StringBuilder();
+		try {
+			BufferedReader reader = request.getReader();
+			String line = null;
+			while((line = reader.readLine())!= null)
+			{
+				sb.append(line);
+			}
+			return new JSONObject(sb.toString());
+					
+		} catch (IOException | JSONException e) {
+			e.printStackTrace();
+		}
+		return new JSONObject();
+
 	}
 }
