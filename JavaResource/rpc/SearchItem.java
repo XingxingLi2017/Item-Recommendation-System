@@ -1,7 +1,6 @@
 package rpc;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -11,11 +10,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
+import db.DBConnection;
+import db.DBConnectionFactory;
 import entity.Item;
-import external.TicketMasterAPI;
 
 /**
  * Servlet implementation class SearchItem
@@ -24,7 +21,7 @@ import external.TicketMasterAPI;
 @WebServlet(name = "search", urlPatterns = {"/search"})
 public class SearchItem extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-       
+
     /**
      * @see HttpServlet#HttpServlet()
      */
@@ -42,15 +39,23 @@ public class SearchItem extends HttpServlet {
 		double lon=0;
 		if(request.getParameter("lon") != null)
 			lon = Double.parseDouble(request.getParameter("lon"));
-		String keyword = request.getParameter("term");
-		TicketMasterAPI api = new TicketMasterAPI();
-		List<Item> items = api.search(lat, lon, keyword);
-		JSONArray arr = new JSONArray();
-		for(Item item: items)
-		{
-			arr.put(item.toJSONObject());
+
+		String term = request.getParameter("term");
+		DBConnection conn = DBConnectionFactory.getConnection();
+		try {
+			List<Item> items = conn.searchItems(lat, lon, term);
+
+			JSONArray arr = new JSONArray();
+			for(Item item: items)
+			{
+				arr.put(item.toJSONObject());
+			}
+			RpcHelper.writeJSONArray(response, arr);
 		}
-		RpcHelper.writeJSONArray(response, arr);
+		finally {
+			conn.close();
+		}
+		
 	}
 
 	/**
