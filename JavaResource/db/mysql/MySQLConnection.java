@@ -1,21 +1,24 @@
 package db.mysql;
 
+import java.util.HashSet;
 import java.util.List;
 import java.sql.Connection;
-import java.sql.DriverManager;
+import java.sql.DriverManager; 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Set;
 
 import db.DBConnection;
 import entity.Item;
+import entity.Item.ItemBuilder;
 import external.TicketMasterAPI;
 
 public class MySQLConnection implements DBConnection {
 	private Connection conn;
 	private PreparedStatement saveItemStmt = null;
 	private PreparedStatement saveCategoriesStmt = null;
-
+	
 	private PreparedStatement getSaveCategoriesStmt() {
 		if(saveCategoriesStmt == null)
 		{
@@ -23,7 +26,7 @@ public class MySQLConnection implements DBConnection {
 			{
 				try {
 					saveCategoriesStmt = conn.prepareStatement("INSERT IGNORE INTO categories VALUES(?,?)");
-
+					
 				}catch(SQLException e) {
 					e.printStackTrace();
 				}
@@ -31,7 +34,7 @@ public class MySQLConnection implements DBConnection {
 		}
 		return saveCategoriesStmt;
 	}
-
+	
 	private PreparedStatement getSaveItemStmt() {
 		if(saveItemStmt == null)
 		{
@@ -43,12 +46,12 @@ public class MySQLConnection implements DBConnection {
 					e.printStackTrace();
 				}
 			}
-
+			
 		}
 		return saveItemStmt;
 	}
-
-
+	
+	
 	public MySQLConnection() {
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver").getConstructor().newInstance();
@@ -115,18 +118,81 @@ public class MySQLConnection implements DBConnection {
 	}
 
 	@Override
-	public Set<String> getFavoriteItemIds(String userId) {
-		return null;
+	public Set<String> getFavoriteItemIds(String userId) {	
+		if(conn == null) {
+			System.err.println("DB connection failed!");
+			return new HashSet<>();
+		}
+		Set<String> itemIds = new HashSet<>();
+		String sql = "SELECT item_id FROM History WHERE user_id =?";
+		PreparedStatement stmt;
+		try {
+			stmt = conn.prepareStatement(sql);
+			stmt.setString(1, userId);
+			ResultSet res = stmt.executeQuery();
+			while(res.next()) {
+				itemIds.add(res.getString("item_id"));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return itemIds;
 	}
 
 	@Override
 	public Set<Item> getFavoriteItems(String userId) {
-		return null;
+		if(conn == null) {
+			System.err.println("DB connection failed!");
+			return new HashSet<>();
+		}
+		Set<Item> favoriteItems = new HashSet<>();
+		Set<String> itemIds = getFavoriteItemIds(userId);
+		try {
+			String sql  = "SELECT * FROM items WHERE item_id = ?";
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			for(String itemId : itemIds) {
+				stmt.setString(1, itemId);
+				ResultSet res =  stmt.executeQuery();
+				ItemBuilder builder = new ItemBuilder();
+				while(res.next()) {
+					builder.setItemId(res.getString("item_id"));
+					builder.setName(res.getString("name"));
+					builder.setAddress(res.getString("address"));
+					builder.setImageUrl(res.getString("image_url"));
+					builder.setUrl(res.getString("url"));
+					builder.setCategories(getCategories(itemId));
+					builder.setRating(res.getDouble("rating"));
+					builder.setDistance(res.getDouble("distance"));
+					favoriteItems.add(builder.build());
+				}
+			}
+		}
+		catch(SQLException e) {
+			e.printStackTrace();
+		}
+		return favoriteItems;
 	}
 
 	@Override
 	public Set<String> getCategories(String itemId) {
-		return null;
+		if(conn == null) {
+			System.err.println("DB connection failed!");
+			return new HashSet<>();
+		}
+		Set<String> categories = new HashSet<>();
+		try {
+			String sql = "SELECT * FROM categories WHERE item_id = ?";
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			stmt.setString(1, itemId);
+			ResultSet res = stmt.executeQuery();
+			while(res.next()) {
+				categories.add(res.getString("category"));
+			}
+		}
+		catch(SQLException e) {
+			e.printStackTrace();
+		}
+		return categories;
 	}
 
 	@Override
@@ -146,8 +212,8 @@ public class MySQLConnection implements DBConnection {
 		if(conn == null) {
 			System.err.println("DB connecting failed!");
 			return;
-		}
-
+		}	
+		
 		try {
 			// safe way of exicute sql
 			PreparedStatement stmt = getSaveItemStmt();
@@ -159,7 +225,7 @@ public class MySQLConnection implements DBConnection {
 			stmt.setString(6, item.getUrl());
 			stmt.setDouble(7, item.getDistance());
 			stmt.execute();
-
+			
 			stmt = getSaveCategoriesStmt();
 			for(String category: item.getCategories())
 			{
@@ -170,7 +236,7 @@ public class MySQLConnection implements DBConnection {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-
+		
 	}
 
 	@Override

@@ -207,7 +207,7 @@ public class TicketMasterAPI {
 	 * 3. build the Item Object
 	 * **/
 	private List<Item> getItemList(JSONArray events) throws JSONException {
-		List<Item> itemList = new ArrayList();
+		List<Item> itemList = new ArrayList<Item>();
 		for(int i = 0 ; i < events.length() ; i++)
 		{
 			JSONObject event = events.getJSONObject(i);

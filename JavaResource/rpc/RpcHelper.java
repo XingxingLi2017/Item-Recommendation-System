@@ -19,7 +19,7 @@ public class RpcHelper {
 			response.addHeader("Access-Control-Allow-Origin", "*");
 			out.println(obj);
 			out.flush();
-
+			
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -43,7 +43,7 @@ public class RpcHelper {
 			out.close();
 		}
 	}
-
+	
 	public static JSONObject readJsonObject(HttpServletRequest request)
 	{
 		StringBuilder sb = new StringBuilder();
@@ -60,6 +60,6 @@ public class RpcHelper {
 			e.printStackTrace();
 		}
 		return new JSONObject();
-
+		
 	}
 }

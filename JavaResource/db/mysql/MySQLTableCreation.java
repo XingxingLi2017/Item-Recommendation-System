@@ -16,7 +16,7 @@ public class MySQLTableCreation {
 			if(conn == null)
 				return ;
 			System.out.println("get connection successfully!");
-
+			
 			// 2.
 			Statement stmt = conn.createStatement();
 			String sql = "DROP TABLE IF EXISTS categories";
@@ -27,7 +27,6 @@ public class MySQLTableCreation {
 			stmt.executeUpdate(sql);
 			sql = "DROP TABLE IF EXISTS users";
 			stmt.executeUpdate(sql);
-
 			System.out.println("import done successfully!");
 			sql = "CREATE TABLE items("
 					+ "item_id VARCHAR(255) NOT NULL,"
@@ -40,7 +39,7 @@ public class MySQLTableCreation {
 					+ "primary key(item_id)"
 					+ ")";
 			stmt.executeUpdate(sql);
-
+			
 			sql = "CREATE TABLE categories("
 					+ "item_id varchar(255) not null,"
 					+ "category varchar(255) not null,"
@@ -56,7 +55,7 @@ public class MySQLTableCreation {
 					+ "primary key (user_id)"
 					+ ")";
 			stmt.executeUpdate(sql);
-
+			
 			sql="create table history("
 					+ "user_id varchar(255) not null,"
 					+ "item_id varchar(255) not null,"
@@ -66,12 +65,12 @@ public class MySQLTableCreation {
 					+ "foreign key (user_id) references users(user_id)"
 					+ ")";
 			stmt.executeUpdate(sql);
-
+			
 			// 3. fake test data
 			sql = "INSERT INTO users VALUES("
 					+ "'1111','safweqwfasfs', 'xing', 'li')";
 			stmt.executeUpdate(sql);
-
+			
 		}
 		catch(Exception e){
 			e.printStackTrace();

@@ -3,6 +3,7 @@ package rpc;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -15,6 +16,7 @@ import org.json.JSONObject;
 
 import db.DBConnection;
 import db.DBConnectionFactory;
+import entity.Item;
 
 /**
  * Servlet implementation class ItemHistory
@@ -22,21 +24,36 @@ import db.DBConnectionFactory;
 @WebServlet(name="history", urlPatterns= {"/history"})
 public class ItemHistory extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-
+       
     /**
      * @see HttpServlet#HttpServlet()
      */
     public ItemHistory() {
         super();
-        // TODO Auto-generated constructor stub
     }
 
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		response.getWriter().append("Served at: ").append(request.getContextPath());
+		String userId = request.getParameter("user_id");
+		DBConnection conn = DBConnectionFactory.getConnection();
+		JSONArray array = new JSONArray();
+		try {
+			Set<Item> items =  conn.getFavoriteItems(userId);
+			for(Item item: items) {
+				JSONObject obj = item.toJSONObject();
+				obj.put("favorite", true);
+				array.put(obj);
+			}
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		finally {
+			conn.close();
+		}
+		RpcHelper.writeJSONArray(response, array);
 	}
 
 	/**

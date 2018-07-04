@@ -21,7 +21,7 @@ import entity.Item;
 @WebServlet(name = "search", urlPatterns = {"/search"})
 public class SearchItem extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-
+       
     /**
      * @see HttpServlet#HttpServlet()
      */
@@ -39,12 +39,12 @@ public class SearchItem extends HttpServlet {
 		double lon=0;
 		if(request.getParameter("lon") != null)
 			lon = Double.parseDouble(request.getParameter("lon"));
-
+		
 		String term = request.getParameter("term");
 		DBConnection conn = DBConnectionFactory.getConnection();
 		try {
 			List<Item> items = conn.searchItems(lat, lon, term);
-
+			
 			JSONArray arr = new JSONArray();
 			for(Item item: items)
 			{
